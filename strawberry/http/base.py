@@ -1,12 +1,12 @@
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from functools import cached_property
 from typing import Any, Generic
 from typing_extensions import Protocol
 
 from cross_web import HTTPException
 
-from strawberry.http import GraphQLRequestData
+from strawberry.http import GraphQLRequestData, GraphQLRequestProtocol
 from strawberry.http.ides import GraphQL_IDE, get_graphql_ide_html
 from strawberry.http.types import HTTPMethod, QueryParams
 from strawberry.schema.base import BaseSchema
@@ -29,6 +29,7 @@ class BaseRequestProtocol(Protocol):
 class BaseView(Generic[Request]):
     graphql_ide: GraphQL_IDE | None
     multipart_uploads_enabled: bool = False
+    protocols: Sequence[str] = ()
     schema: BaseSchema
     stream_transport_classes: Mapping[str, type[HTTPStreamTransport]] = {
         MultipartSubscriptionTransport.protocol: MultipartSubscriptionTransport,
@@ -102,7 +103,7 @@ class BaseView(Generic[Request]):
             (
                 transport
                 for transport in self._stream_transport_map.values()
-                if transport.accepts(accept)
+                if transport.is_enabled(self.protocols) and transport.accepts(accept)
             ),
             None,
         )
@@ -120,7 +121,7 @@ class BaseView(Generic[Request]):
         )
 
     def _validate_batch_request(
-        self, request_data: list[GraphQLRequestData], protocol: str
+        self, request_data: list[GraphQLRequestData], protocol: GraphQLRequestProtocol
     ) -> None:
         if self.schema.config.batching_config is None:
             raise HTTPException(400, "Batching is not enabled")

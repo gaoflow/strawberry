@@ -350,6 +350,9 @@ The `AsyncGraphQLView` accepts the following arguments:
   to disable it by passing `None`.
 - `allow_queries_via_get`: optional, defaults to `True`, whether to enable
   queries via `GET` requests
+- `subscription_protocols`: optional, defaults to
+  `(GRAPHQL_TRANSPORT_WS_PROTOCOL, GRAPHQL_WS_PROTOCOL)`, the enabled
+  subscription protocols. Include `GRAPHQL_SSE_PROTOCOL` to enable SSE.
 
 ## Extending the view
 
